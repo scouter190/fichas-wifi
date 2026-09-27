@@ -1,0 +1,4160 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.comercio": {
+      "name": "comercio",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ruc": {
+          "name": "ruc",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plan_suscripcion": {
+          "name": "plan_suscripcion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'basico'"
+        },
+        "activo": {
+          "name": "activo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "suspendido_en": {
+          "name": "suspendido_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "comercio_check": {
+          "name": "comercio_check",
+          "value": "activo OR (suspendido_en IS NOT NULL)"
+        },
+        "comercio_nombre_check": {
+          "name": "comercio_nombre_check",
+          "value": "(length(btrim(nombre)) >= 1) AND (length(btrim(nombre)) <= 120)"
+        },
+        "comercio_plan_suscripcion_check": {
+          "name": "comercio_plan_suscripcion_check",
+          "value": "plan_suscripcion = ANY (ARRAY['basico'::text, 'pro'::text, 'enterprise'::text])"
+        },
+        "comercio_ruc_check": {
+          "name": "comercio_ruc_check",
+          "value": "(ruc IS NULL) OR (ruc ~ '^[0-9]{11}$'::text)"
+        },
+        "comercio_slug_check": {
+          "name": "comercio_slug_check",
+          "value": "slug ~ '^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$'::text"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.punto": {
+      "name": "punto",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prefijo": {
+          "name": "prefijo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'fijo'"
+        },
+        "zona_horaria": {
+          "name": "zona_horaria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'America/Lima'"
+        },
+        "reserva_ttl_min": {
+          "name": "reserva_ttl_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
+        },
+        "pool_minimo": {
+          "name": "pool_minimo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 20
+        },
+        "umbral_manual": {
+          "name": "umbral_manual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 5
+        },
+        "umbral_descuadre": {
+          "name": "umbral_descuadre",
+          "type": "centimos_nonneg",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "200"
+        },
+        "ref_patron_pos": {
+          "name": "ref_patron_pos",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "activo": {
+          "name": "activo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "punto_comercio_id_idx": {
+          "name": "punto_comercio_id_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "activo",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "punto_comercio_id_fkey": {
+          "name": "punto_comercio_id_fkey",
+          "tableFrom": "punto",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "punto_nombre_check": {
+          "name": "punto_nombre_check",
+          "value": "(length(btrim(nombre)) >= 1) AND (length(btrim(nombre)) <= 80)"
+        },
+        "punto_pool_minimo_check": {
+          "name": "punto_pool_minimo_check",
+          "value": "pool_minimo >= 0"
+        },
+        "punto_prefijo_check": {
+          "name": "punto_prefijo_check",
+          "value": "prefijo ~ '^[A-Z0-9]{2,8}$'::text"
+        },
+        "punto_reserva_ttl_min_check": {
+          "name": "punto_reserva_ttl_min_check",
+          "value": "(reserva_ttl_min >= 2) AND (reserva_ttl_min <= 60)"
+        },
+        "punto_tipo_check": {
+          "name": "punto_tipo_check",
+          "value": "tipo = ANY (ARRAY['fijo'::text, 'movil'::text])"
+        },
+        "punto_umbral_manual_check": {
+          "name": "punto_umbral_manual_check",
+          "value": "umbral_manual >= 0"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.contador_orden": {
+      "name": "contador_orden",
+      "schema": "",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "siguiente": {
+          "name": "siguiente",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "contador_orden_comercio_id_fkey": {
+          "name": "contador_orden_comercio_id_fkey",
+          "tableFrom": "contador_orden",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "contador_orden_siguiente_check": {
+          "name": "contador_orden_siguiente_check",
+          "value": "siguiente > 0"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.importacion": {
+      "name": "importacion",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "punto_id": {
+          "name": "punto_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "archivo": {
+          "name": "archivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "huella": {
+          "name": "huella",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filas_leidas": {
+          "name": "filas_leidas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filas_nuevas": {
+          "name": "filas_nuevas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "en_router_al_importar": {
+          "name": "en_router_al_importar",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "importado_en": {
+          "name": "importado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "importacion_comercio_id_fkey": {
+          "name": "importacion_comercio_id_fkey",
+          "tableFrom": "importacion",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "importacion_punto_id_comercio_id_fkey": {
+          "name": "importacion_punto_id_comercio_id_fkey",
+          "tableFrom": "importacion",
+          "tableTo": "punto",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "punto_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "importacion_usuario_id_comercio_id_fkey": {
+          "name": "importacion_usuario_id_comercio_id_fkey",
+          "tableFrom": "importacion",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "importacion_check": {
+          "name": "importacion_check",
+          "value": "filas_nuevas <= filas_leidas"
+        },
+        "importacion_filas_leidas_check": {
+          "name": "importacion_filas_leidas_check",
+          "value": "filas_leidas >= 0"
+        },
+        "importacion_filas_nuevas_check": {
+          "name": "importacion_filas_nuevas_check",
+          "value": "filas_nuevas > 0"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.pago": {
+      "name": "pago",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "orden_id": {
+          "name": "orden_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metodo": {
+          "name": "metodo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "motivo_manual": {
+          "name": "motivo_manual",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "medio": {
+          "name": "medio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "referencia": {
+          "name": "referencia",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estado": {
+          "name": "estado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pendiente'"
+        },
+        "monto_centimos": {
+          "name": "monto_centimos",
+          "type": "centimos_pos",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recibido_centimos": {
+          "name": "recibido_centimos",
+          "type": "centimos_pos",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confirmado_por": {
+          "name": "confirmado_por",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "detalle": {
+          "name": "detalle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conciliado_en": {
+          "name": "conciliado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conciliado_por": {
+          "name": "conciliado_por",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "devuelto_en": {
+          "name": "devuelto_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        },
+        "resuelto_en": {
+          "name": "resuelto_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "pago_comercio_id_conciliado_en_idx": {
+          "name": "pago_comercio_id_conciliado_en_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "conciliado_en",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(metodo = 'manual'::text)",
+          "with": {}
+        },
+        "pago_referencia": {
+          "name": "pago_referencia",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "referencia",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(referencia IS NOT NULL)",
+          "with": {}
+        },
+        "pago_un_exito": {
+          "name": "pago_un_exito",
+          "columns": [
+            {
+              "expression": "orden_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(estado = 'exitoso'::text)",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "pago_comercio_id_fkey": {
+          "name": "pago_comercio_id_fkey",
+          "tableFrom": "pago",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "pago_conciliado_por_comercio_id_fkey": {
+          "name": "pago_conciliado_por_comercio_id_fkey",
+          "tableFrom": "pago",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "conciliado_por"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "pago_confirmado_por_comercio_id_fkey": {
+          "name": "pago_confirmado_por_comercio_id_fkey",
+          "tableFrom": "pago",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "confirmado_por"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "pago_orden_id_comercio_id_fkey": {
+          "name": "pago_orden_id_comercio_id_fkey",
+          "tableFrom": "pago",
+          "tableTo": "orden",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "orden_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "pago_check": {
+          "name": "pago_check",
+          "value": "(metodo <> 'efectivo'::text) OR ((referencia IS NULL) AND (motivo_manual IS NULL) AND (medio IS NULL))"
+        },
+        "pago_check1": {
+          "name": "pago_check1",
+          "value": "(recibido_centimos IS NULL) OR ((metodo = 'efectivo'::text) AND ((recibido_centimos)::integer >= (monto_centimos)::integer))"
+        },
+        "pago_check2": {
+          "name": "pago_check2",
+          "value": "(metodo <> 'manual'::text) OR (motivo_manual IS NOT NULL)"
+        },
+        "pago_check3": {
+          "name": "pago_check3",
+          "value": "(motivo_manual IS DISTINCT FROM 'pos_externo'::text) OR ((medio IS NOT NULL) AND (referencia ~ '^[A-Za-z0-9]{4,20}$'::text))"
+        },
+        "pago_check4": {
+          "name": "pago_check4",
+          "value": "(conciliado_en IS NULL) = (conciliado_por IS NULL)"
+        },
+        "pago_check5": {
+          "name": "pago_check5",
+          "value": "(conciliado_en IS NULL) OR ((metodo = 'manual'::text) AND (estado = ANY (ARRAY['exitoso'::text, 'devuelto'::text])))"
+        },
+        "pago_check6": {
+          "name": "pago_check6",
+          "value": "(estado = 'devuelto'::text) = (devuelto_en IS NOT NULL)"
+        },
+        "pago_check7": {
+          "name": "pago_check7",
+          "value": "(estado = 'pendiente'::text) = (resuelto_en IS NULL)"
+        },
+        "pago_estado_check": {
+          "name": "pago_estado_check",
+          "value": "estado = ANY (ARRAY['pendiente'::text, 'exitoso'::text, 'fallido'::text, 'expirado'::text, 'devuelto'::text])"
+        },
+        "pago_medio_check": {
+          "name": "pago_medio_check",
+          "value": "medio = ANY (ARRAY['QR'::text, 'YAPE'::text, 'PLIN'::text, 'CARD'::text, 'TRANSFERENCIA'::text])"
+        },
+        "pago_metodo_check": {
+          "name": "pago_metodo_check",
+          "value": "metodo = ANY (ARRAY['efectivo'::text, 'manual'::text])"
+        },
+        "pago_motivo_manual_check": {
+          "name": "pago_motivo_manual_check",
+          "value": "motivo_manual = ANY (ARRAY['pos_externo'::text, 'sin_internet'::text, 'cuenta_personal'::text, 'monto_distinto'::text, 'otro'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.incidencia": {
+      "name": "incidencia",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "orden_id": {
+          "name": "orden_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descripcion": {
+          "name": "descripcion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "referencia": {
+          "name": "referencia",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "celular": {
+          "name": "celular",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "monto_centimos": {
+          "name": "monto_centimos",
+          "type": "centimos",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estado": {
+          "name": "estado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'abierta'"
+        },
+        "resuelto_por": {
+          "name": "resuelto_por",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolucion": {
+          "name": "resolucion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resuelto_en": {
+          "name": "resuelto_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "incidencia_comercio_id_fkey": {
+          "name": "incidencia_comercio_id_fkey",
+          "tableFrom": "incidencia",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "incidencia_orden_id_comercio_id_fkey": {
+          "name": "incidencia_orden_id_comercio_id_fkey",
+          "tableFrom": "incidencia",
+          "tableTo": "orden",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "orden_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "incidencia_resuelto_por_comercio_id_fkey": {
+          "name": "incidencia_resuelto_por_comercio_id_fkey",
+          "tableFrom": "incidencia",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "resuelto_por"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "incidencia_turno_id_comercio_id_fkey": {
+          "name": "incidencia_turno_id_comercio_id_fkey",
+          "tableFrom": "incidencia",
+          "tableTo": "turno",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "turno_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "incidencia_usuario_id_comercio_id_fkey": {
+          "name": "incidencia_usuario_id_comercio_id_fkey",
+          "tableFrom": "incidencia",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "incidencia_check": {
+          "name": "incidencia_check",
+          "value": "(estado = 'abierta'::text) = (resuelto_en IS NULL)"
+        },
+        "incidencia_descripcion_check": {
+          "name": "incidencia_descripcion_check",
+          "value": "length(btrim(descripcion)) > 0"
+        },
+        "incidencia_estado_check": {
+          "name": "incidencia_estado_check",
+          "value": "estado = ANY (ARRAY['abierta'::text, 'resuelta'::text, 'descartada'::text])"
+        },
+        "incidencia_tipo_check": {
+          "name": "incidencia_tipo_check",
+          "value": "tipo = ANY (ARRAY['pago_no_verificable'::text, 'monto_incorrecto'::text, 'ficha_no_funciona'::text, 'sin_respaldo_pos'::text, 'otro'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.plan": {
+      "name": "plan",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "codigo": {
+          "name": "codigo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'tiempo'"
+        },
+        "orden_display": {
+          "name": "orden_display",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "precio_centimos": {
+          "name": "precio_centimos",
+          "type": "centimos_pos",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "limite_tiempo_seg": {
+          "name": "limite_tiempo_seg",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "limite_bytes": {
+          "name": "limite_bytes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validez_dias": {
+          "name": "validez_dias",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rate_limit": {
+          "name": "rate_limit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stock_minimo": {
+          "name": "stock_minimo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "activo": {
+          "name": "activo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "plan_comercio_id_orden_display_idx": {
+          "name": "plan_comercio_id_orden_display_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "orden_display",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "activo",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "plan_comercio_id_fkey": {
+          "name": "plan_comercio_id_fkey",
+          "tableFrom": "plan",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "plan_categoria_check": {
+          "name": "plan_categoria_check",
+          "value": "categoria = ANY (ARRAY['tiempo'::text, 'datos'::text, 'mixto'::text])"
+        },
+        "plan_check": {
+          "name": "plan_check",
+          "value": "(limite_tiempo_seg IS NOT NULL) OR (limite_bytes IS NOT NULL)"
+        },
+        "plan_check1": {
+          "name": "plan_check1",
+          "value": "(categoria <> 'tiempo'::text) OR (limite_tiempo_seg IS NOT NULL)"
+        },
+        "plan_check2": {
+          "name": "plan_check2",
+          "value": "(categoria <> 'datos'::text) OR (limite_bytes IS NOT NULL)"
+        },
+        "plan_check3": {
+          "name": "plan_check3",
+          "value": "(categoria <> 'mixto'::text) OR ((limite_tiempo_seg IS NOT NULL) AND (limite_bytes IS NOT NULL))"
+        },
+        "plan_codigo_check": {
+          "name": "plan_codigo_check",
+          "value": "codigo ~ '^[A-Za-z0-9_]{2,20}$'::text"
+        },
+        "plan_limite_bytes_check": {
+          "name": "plan_limite_bytes_check",
+          "value": "(limite_bytes IS NULL) OR (limite_bytes > 0)"
+        },
+        "plan_limite_tiempo_seg_check": {
+          "name": "plan_limite_tiempo_seg_check",
+          "value": "(limite_tiempo_seg IS NULL) OR (limite_tiempo_seg > 0)"
+        },
+        "plan_nombre_check": {
+          "name": "plan_nombre_check",
+          "value": "(length(btrim(nombre)) >= 1) AND (length(btrim(nombre)) <= 60)"
+        },
+        "plan_stock_minimo_check": {
+          "name": "plan_stock_minimo_check",
+          "value": "(stock_minimo IS NULL) OR (stock_minimo >= 0)"
+        },
+        "plan_validez_dias_check": {
+          "name": "plan_validez_dias_check",
+          "value": "validez_dias > 0"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.usuario": {
+      "name": "usuario",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rol": {
+          "name": "rol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'operario'"
+        },
+        "intentos_fallidos": {
+          "name": "intentos_fallidos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "bloqueado_hasta": {
+          "name": "bloqueado_hasta",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ultimo_acceso": {
+          "name": "ultimo_acceso",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "activo": {
+          "name": "activo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "usuario_comercio_id_idx": {
+          "name": "usuario_comercio_id_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "activo",
+          "with": {}
+        },
+        "usuario_email_global": {
+          "name": "usuario_email_global",
+          "columns": [
+            {
+              "expression": "email",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "activo",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "usuario_comercio_id_fkey": {
+          "name": "usuario_comercio_id_fkey",
+          "tableFrom": "usuario",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "usuario_email_check": {
+          "name": "usuario_email_check",
+          "value": "(email = lower(email)) AND (email ~ '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'::text)"
+        },
+        "usuario_intentos_fallidos_check": {
+          "name": "usuario_intentos_fallidos_check",
+          "value": "intentos_fallidos >= 0"
+        },
+        "usuario_nombre_check": {
+          "name": "usuario_nombre_check",
+          "value": "(length(btrim(nombre)) >= 1) AND (length(btrim(nombre)) <= 80)"
+        },
+        "usuario_rol_check": {
+          "name": "usuario_rol_check",
+          "value": "rol = ANY (ARRAY['operario'::text, 'supervisor'::text, 'admin'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.turno": {
+      "name": "turno",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "punto_id": {
+          "name": "punto_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dia_operativo": {
+          "name": "dia_operativo",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "abierto_en": {
+          "name": "abierto_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        },
+        "cerrado_en": {
+          "name": "cerrado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fondo_inicial": {
+          "name": "fondo_inicial",
+          "type": "centimos_nonneg",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "0"
+        },
+        "efectivo_declarado": {
+          "name": "efectivo_declarado",
+          "type": "centimos_nonneg",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "efectivo_esperado": {
+          "name": "efectivo_esperado",
+          "type": "centimos",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "diferencia": {
+          "name": "diferencia",
+          "type": "centimos",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nota_cierre": {
+          "name": "nota_cierre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "turno_comercio_id_dia_operativo_idx": {
+          "name": "turno_comercio_id_dia_operativo_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "dia_operativo",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "turno_uno_abierto_por_punto": {
+          "name": "turno_uno_abierto_por_punto",
+          "columns": [
+            {
+              "expression": "punto_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(cerrado_en IS NULL)",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "turno_comercio_id_fkey": {
+          "name": "turno_comercio_id_fkey",
+          "tableFrom": "turno",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "turno_punto_id_comercio_id_fkey": {
+          "name": "turno_punto_id_comercio_id_fkey",
+          "tableFrom": "turno",
+          "tableTo": "punto",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "punto_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "turno_usuario_id_comercio_id_fkey": {
+          "name": "turno_usuario_id_comercio_id_fkey",
+          "tableFrom": "turno",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "turno_check": {
+          "name": "turno_check",
+          "value": "(cerrado_en IS NULL) = (efectivo_declarado IS NULL)"
+        },
+        "turno_check1": {
+          "name": "turno_check1",
+          "value": "(cerrado_en IS NULL) OR (cerrado_en >= abierto_en)"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.movimiento_caja": {
+      "name": "movimiento_caja",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "monto_centimos": {
+          "name": "monto_centimos",
+          "type": "centimos",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "motivo": {
+          "name": "motivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ocurrido_en": {
+          "name": "ocurrido_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "movimiento_caja_turno_id_idx": {
+          "name": "movimiento_caja_turno_id_idx",
+          "columns": [
+            {
+              "expression": "turno_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "movimiento_caja_comercio_id_fkey": {
+          "name": "movimiento_caja_comercio_id_fkey",
+          "tableFrom": "movimiento_caja",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "movimiento_caja_turno_id_comercio_id_fkey": {
+          "name": "movimiento_caja_turno_id_comercio_id_fkey",
+          "tableFrom": "movimiento_caja",
+          "tableTo": "turno",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "turno_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "movimiento_caja_usuario_id_comercio_id_fkey": {
+          "name": "movimiento_caja_usuario_id_comercio_id_fkey",
+          "tableFrom": "movimiento_caja",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "movimiento_caja_monto_centimos_check": {
+          "name": "movimiento_caja_monto_centimos_check",
+          "value": "(monto_centimos)::integer <> 0"
+        },
+        "movimiento_caja_motivo_check": {
+          "name": "movimiento_caja_motivo_check",
+          "value": "length(btrim(motivo)) > 0"
+        },
+        "movimiento_caja_tipo_check": {
+          "name": "movimiento_caja_tipo_check",
+          "value": "tipo = ANY (ARRAY['fondo'::text, 'retiro'::text, 'ingreso'::text, 'ajuste'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.cliente": {
+      "name": "cliente",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "celular": {
+          "name": "celular",
+          "type": "celular_pe",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "apellido": {
+          "name": "apellido",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "documento_tipo": {
+          "name": "documento_tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "documento_num": {
+          "name": "documento_num",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "consentimiento_en": {
+          "name": "consentimiento_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "activo": {
+          "name": "activo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "cliente_comercio_id_fkey": {
+          "name": "cliente_comercio_id_fkey",
+          "tableFrom": "cliente",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "cliente_check": {
+          "name": "cliente_check",
+          "value": "(documento_tipo IS NULL) = (documento_num IS NULL)"
+        },
+        "cliente_check1": {
+          "name": "cliente_check1",
+          "value": "(documento_tipo IS DISTINCT FROM 'DNI'::text) OR (documento_num ~ '^[0-9]{8}$'::text)"
+        },
+        "cliente_documento_tipo_check": {
+          "name": "cliente_documento_tipo_check",
+          "value": "documento_tipo = ANY (ARRAY['DNI'::text, 'CE'::text, 'PASAPORTE'::text, 'RUC'::text])"
+        },
+        "cliente_email_check": {
+          "name": "cliente_email_check",
+          "value": "(email IS NULL) OR (email ~ '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'::text)"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.lote": {
+      "name": "lote",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "punto_id": {
+          "name": "punto_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "importacion_id": {
+          "name": "importacion_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cantidad": {
+          "name": "cantidad",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "impreso_en": {
+          "name": "impreso_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anulado_en": {
+          "name": "anulado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "motivo_anulacion": {
+          "name": "motivo_anulacion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "lote_comercio_id_plan_id_idx": {
+          "name": "lote_comercio_id_plan_id_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "plan_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "lote_comercio_id_fkey": {
+          "name": "lote_comercio_id_fkey",
+          "tableFrom": "lote",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "lote_importacion_id_comercio_id_fkey": {
+          "name": "lote_importacion_id_comercio_id_fkey",
+          "tableFrom": "lote",
+          "tableTo": "importacion",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "importacion_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "lote_plan_id_comercio_id_fkey": {
+          "name": "lote_plan_id_comercio_id_fkey",
+          "tableFrom": "lote",
+          "tableTo": "plan",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "plan_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "lote_punto_id_comercio_id_fkey": {
+          "name": "lote_punto_id_comercio_id_fkey",
+          "tableFrom": "lote",
+          "tableTo": "punto",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "punto_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "lote_cantidad_check": {
+          "name": "lote_cantidad_check",
+          "value": "cantidad > 0"
+        },
+        "lote_check": {
+          "name": "lote_check",
+          "value": "(anulado_en IS NULL) = (motivo_anulacion IS NULL)"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.ficha": {
+      "name": "ficha",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "punto_id": {
+          "name": "punto_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lote_id": {
+          "name": "lote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "codigo": {
+          "name": "codigo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "origen": {
+          "name": "origen",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'importada'"
+        },
+        "estado": {
+          "name": "estado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'disponible'"
+        },
+        "en_router": {
+          "name": "en_router",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "router_conf_en": {
+          "name": "router_conf_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reservada_hasta": {
+          "name": "reservada_hasta",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vendida_en": {
+          "name": "vendida_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primer_login_en": {
+          "name": "primer_login_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expira_en": {
+          "name": "expira_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "ficha_comercio_id_estado_idx": {
+          "name": "ficha_comercio_id_estado_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "estado",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ficha_lote_id_idx": {
+          "name": "ficha_lote_id_idx",
+          "columns": [
+            {
+              "expression": "lote_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ficha_pool": {
+          "name": "ficha_pool",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "plan_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "((estado = 'disponible'::text) AND en_router)",
+          "with": {}
+        },
+        "ficha_sin_cargar": {
+          "name": "ficha_sin_cargar",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "plan_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "((estado = 'disponible'::text) AND (NOT en_router))",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "ficha_comercio_id_fkey": {
+          "name": "ficha_comercio_id_fkey",
+          "tableFrom": "ficha",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "ficha_lote_id_comercio_id_fkey": {
+          "name": "ficha_lote_id_comercio_id_fkey",
+          "tableFrom": "ficha",
+          "tableTo": "lote",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "lote_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ficha_lote_id_plan_id_punto_id_fkey": {
+          "name": "ficha_lote_id_plan_id_punto_id_fkey",
+          "tableFrom": "ficha",
+          "tableTo": "lote",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "punto_id",
+            "lote_id",
+            "plan_id"
+          ],
+          "columnsTo": [
+            "id",
+            "punto_id",
+            "plan_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "ficha_check": {
+          "name": "ficha_check",
+          "value": "en_router = (router_conf_en IS NOT NULL)"
+        },
+        "ficha_check1": {
+          "name": "ficha_check1",
+          "value": "(estado <> 'reservada'::text) OR (reservada_hasta IS NOT NULL)"
+        },
+        "ficha_check2": {
+          "name": "ficha_check2",
+          "value": "(estado <> ALL (ARRAY['vendida'::text, 'activada'::text, 'agotada'::text, 'expirada'::text])) OR (vendida_en IS NOT NULL)"
+        },
+        "ficha_check3": {
+          "name": "ficha_check3",
+          "value": "(estado <> ALL (ARRAY['activada'::text, 'agotada'::text])) OR (primer_login_en IS NOT NULL)"
+        },
+        "ficha_codigo_check": {
+          "name": "ficha_codigo_check",
+          "value": "codigo ~ '^[A-Z0-9]{2,8}-[A-HJ-NP-Z2-9]{4,12}$'::text"
+        },
+        "ficha_estado_check": {
+          "name": "ficha_estado_check",
+          "value": "estado = ANY (ARRAY['disponible'::text, 'reservada'::text, 'vendida'::text, 'activada'::text, 'agotada'::text, 'expirada'::text, 'anulada'::text])"
+        },
+        "ficha_origen_check": {
+          "name": "ficha_origen_check",
+          "value": "origen = ANY (ARRAY['app'::text, 'importada'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.orden": {
+      "name": "orden",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ficha_id": {
+          "name": "ficha_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cliente_id": {
+          "name": "cliente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "numero": {
+          "name": "numero",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "monto_centimos": {
+          "name": "monto_centimos",
+          "type": "centimos_pos",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "estado": {
+          "name": "estado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'abierta'"
+        },
+        "expira_en": {
+          "name": "expira_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        },
+        "resuelta_en": {
+          "name": "resuelta_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "orden_turno_id_idx": {
+          "name": "orden_turno_id_idx",
+          "columns": [
+            {
+              "expression": "turno_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "orden_una_abierta": {
+          "name": "orden_una_abierta",
+          "columns": [
+            {
+              "expression": "ficha_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(estado = 'abierta'::text)",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "orden_cliente_id_comercio_id_fkey": {
+          "name": "orden_cliente_id_comercio_id_fkey",
+          "tableFrom": "orden",
+          "tableTo": "cliente",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "cliente_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "orden_comercio_id_fkey": {
+          "name": "orden_comercio_id_fkey",
+          "tableFrom": "orden",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "orden_ficha_id_comercio_id_fkey": {
+          "name": "orden_ficha_id_comercio_id_fkey",
+          "tableFrom": "orden",
+          "tableTo": "ficha",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "ficha_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "orden_plan_id_comercio_id_fkey": {
+          "name": "orden_plan_id_comercio_id_fkey",
+          "tableFrom": "orden",
+          "tableTo": "plan",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "plan_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "orden_turno_id_comercio_id_fkey": {
+          "name": "orden_turno_id_comercio_id_fkey",
+          "tableFrom": "orden",
+          "tableTo": "turno",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "turno_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "orden_usuario_id_comercio_id_fkey": {
+          "name": "orden_usuario_id_comercio_id_fkey",
+          "tableFrom": "orden",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "orden_check": {
+          "name": "orden_check",
+          "value": "(estado = 'abierta'::text) = (resuelta_en IS NULL)"
+        },
+        "orden_estado_check": {
+          "name": "orden_estado_check",
+          "value": "estado = ANY (ARRAY['abierta'::text, 'pagada'::text, 'cancelada'::text, 'expirada'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.venta": {
+      "name": "venta",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ficha_id": {
+          "name": "ficha_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "orden_id": {
+          "name": "orden_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cliente_id": {
+          "name": "cliente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metodo": {
+          "name": "metodo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "monto_centimos": {
+          "name": "monto_centimos",
+          "type": "centimos_pos",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fecha_local": {
+          "name": "fecha_local",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hora_local": {
+          "name": "hora_local",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comprobante_id": {
+          "name": "comprobante_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ocurrida_en": {
+          "name": "ocurrida_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "venta_comercio_id_fecha_local_idx": {
+          "name": "venta_comercio_id_fecha_local_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "fecha_local",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "venta_turno_id_idx": {
+          "name": "venta_turno_id_idx",
+          "columns": [
+            {
+              "expression": "turno_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "venta_cliente_id_comercio_id_fkey": {
+          "name": "venta_cliente_id_comercio_id_fkey",
+          "tableFrom": "venta",
+          "tableTo": "cliente",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "cliente_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "venta_comercio_id_fkey": {
+          "name": "venta_comercio_id_fkey",
+          "tableFrom": "venta",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "venta_ficha_id_comercio_id_fkey": {
+          "name": "venta_ficha_id_comercio_id_fkey",
+          "tableFrom": "venta",
+          "tableTo": "ficha",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "ficha_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "venta_orden_id_comercio_id_fkey": {
+          "name": "venta_orden_id_comercio_id_fkey",
+          "tableFrom": "venta",
+          "tableTo": "orden",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "orden_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "venta_plan_id_comercio_id_fkey": {
+          "name": "venta_plan_id_comercio_id_fkey",
+          "tableFrom": "venta",
+          "tableTo": "plan",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "plan_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "venta_turno_id_comercio_id_fkey": {
+          "name": "venta_turno_id_comercio_id_fkey",
+          "tableFrom": "venta",
+          "tableTo": "turno",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "turno_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "venta_usuario_id_comercio_id_fkey": {
+          "name": "venta_usuario_id_comercio_id_fkey",
+          "tableFrom": "venta",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "venta_hora_local_check": {
+          "name": "venta_hora_local_check",
+          "value": "(hora_local >= 0) AND (hora_local <= 23)"
+        },
+        "venta_metodo_check": {
+          "name": "venta_metodo_check",
+          "value": "metodo = ANY (ARRAY['efectivo'::text, 'manual'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.anulacion": {
+      "name": "anulacion",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "venta_id": {
+          "name": "venta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "motivo": {
+          "name": "motivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "detalle": {
+          "name": "detalle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ocurrida_en": {
+          "name": "ocurrida_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "anulacion_turno_id_idx": {
+          "name": "anulacion_turno_id_idx",
+          "columns": [
+            {
+              "expression": "turno_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "anulacion_comercio_id_fkey": {
+          "name": "anulacion_comercio_id_fkey",
+          "tableFrom": "anulacion",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "anulacion_turno_id_comercio_id_fkey": {
+          "name": "anulacion_turno_id_comercio_id_fkey",
+          "tableFrom": "anulacion",
+          "tableTo": "turno",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "turno_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "anulacion_usuario_id_comercio_id_fkey": {
+          "name": "anulacion_usuario_id_comercio_id_fkey",
+          "tableFrom": "anulacion",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "anulacion_venta_id_comercio_id_fkey": {
+          "name": "anulacion_venta_id_comercio_id_fkey",
+          "tableFrom": "anulacion",
+          "tableTo": "venta",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "venta_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "anulacion_motivo_check": {
+          "name": "anulacion_motivo_check",
+          "value": "motivo = ANY (ARRAY['error_operario'::text, 'ficha_no_funciona'::text, 'reclamo_cliente'::text, 'devolucion_pos'::text, 'otro'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.entrega": {
+      "name": "entrega",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "venta_id": {
+          "name": "venta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "medio": {
+          "name": "medio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reimpresion": {
+          "name": "reimpresion",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "motivo": {
+          "name": "motivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ocurrido_en": {
+          "name": "ocurrido_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "entrega_comercio_id_fkey": {
+          "name": "entrega_comercio_id_fkey",
+          "tableFrom": "entrega",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "entrega_usuario_id_comercio_id_fkey": {
+          "name": "entrega_usuario_id_comercio_id_fkey",
+          "tableFrom": "entrega",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "entrega_venta_id_comercio_id_fkey": {
+          "name": "entrega_venta_id_comercio_id_fkey",
+          "tableFrom": "entrega",
+          "tableTo": "venta",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "venta_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "entrega_check": {
+          "name": "entrega_check",
+          "value": "(NOT reimpresion) OR (motivo IS NOT NULL)"
+        },
+        "entrega_medio_check": {
+          "name": "entrega_medio_check",
+          "value": "medio = ANY (ARRAY['pantalla'::text, 'impresa'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.intento_venta": {
+      "name": "intento_venta",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resultado": {
+          "name": "resultado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nota": {
+          "name": "nota",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "venta_id": {
+          "name": "venta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fecha_local": {
+          "name": "fecha_local",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hora_local": {
+          "name": "hora_local",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ocurrido_en": {
+          "name": "ocurrido_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "intento_venta_comercio_id_fecha_local_idx": {
+          "name": "intento_venta_comercio_id_fecha_local_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "fecha_local",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "intento_venta_comercio_id_fkey": {
+          "name": "intento_venta_comercio_id_fkey",
+          "tableFrom": "intento_venta",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "intento_venta_plan_id_comercio_id_fkey": {
+          "name": "intento_venta_plan_id_comercio_id_fkey",
+          "tableFrom": "intento_venta",
+          "tableTo": "plan",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "plan_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "intento_venta_turno_id_comercio_id_fkey": {
+          "name": "intento_venta_turno_id_comercio_id_fkey",
+          "tableFrom": "intento_venta",
+          "tableTo": "turno",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "turno_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "intento_venta_usuario_id_comercio_id_fkey": {
+          "name": "intento_venta_usuario_id_comercio_id_fkey",
+          "tableFrom": "intento_venta",
+          "tableTo": "usuario",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "intento_venta_venta_id_comercio_id_fkey": {
+          "name": "intento_venta_venta_id_comercio_id_fkey",
+          "tableFrom": "intento_venta",
+          "tableTo": "venta",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "venta_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "intento_venta_check": {
+          "name": "intento_venta_check",
+          "value": "(resultado = 'vendida'::text) = (venta_id IS NOT NULL)"
+        },
+        "intento_venta_hora_local_check": {
+          "name": "intento_venta_hora_local_check",
+          "value": "(hora_local >= 0) AND (hora_local <= 23)"
+        },
+        "intento_venta_resultado_check": {
+          "name": "intento_venta_resultado_check",
+          "value": "resultado = ANY (ARRAY['vendida'::text, 'sin_stock'::text, 'desistio'::text, 'precio'::text, 'sin_servicio'::text, 'sin_cambio'::text, 'otro'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.stock_cierre": {
+      "name": "stock_cierre",
+      "schema": "",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "disponibles": {
+          "name": "disponibles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sin_cargar": {
+          "name": "sin_cargar",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "minimo": {
+          "name": "minimo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "registrado_en": {
+          "name": "registrado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "stock_cierre_comercio_id_fkey": {
+          "name": "stock_cierre_comercio_id_fkey",
+          "tableFrom": "stock_cierre",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "stock_cierre_plan_id_comercio_id_fkey": {
+          "name": "stock_cierre_plan_id_comercio_id_fkey",
+          "tableFrom": "stock_cierre",
+          "tableTo": "plan",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "plan_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "stock_cierre_turno_id_comercio_id_fkey": {
+          "name": "stock_cierre_turno_id_comercio_id_fkey",
+          "tableFrom": "stock_cierre",
+          "tableTo": "turno",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id",
+            "turno_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "stock_cierre_disponibles_check": {
+          "name": "stock_cierre_disponibles_check",
+          "value": "disponibles >= 0"
+        },
+        "stock_cierre_sin_cargar_check": {
+          "name": "stock_cierre_sin_cargar_check",
+          "value": "sin_cargar >= 0"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.consumo": {
+      "name": "consumo",
+      "schema": "",
+      "columns": {
+        "ficha_id": {
+          "name": "ficha_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bytes_in": {
+          "name": "bytes_in",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "bytes_out": {
+          "name": "bytes_out",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "uptime_seg": {
+          "name": "uptime_seg",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "sesiones": {
+          "name": "sesiones",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "consumo_comercio_id_fkey": {
+          "name": "consumo_comercio_id_fkey",
+          "tableFrom": "consumo",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "consumo_ficha_id_comercio_id_fkey": {
+          "name": "consumo_ficha_id_comercio_id_fkey",
+          "tableFrom": "consumo",
+          "tableTo": "ficha",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "ficha_id",
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id",
+            "comercio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "consumo_bytes_in_check": {
+          "name": "consumo_bytes_in_check",
+          "value": "bytes_in >= 0"
+        },
+        "consumo_bytes_out_check": {
+          "name": "consumo_bytes_out_check",
+          "value": "bytes_out >= 0"
+        },
+        "consumo_sesiones_check": {
+          "name": "consumo_sesiones_check",
+          "value": "sesiones >= 0"
+        },
+        "consumo_uptime_seg_check": {
+          "name": "consumo_uptime_seg_check",
+          "value": "uptime_seg >= 0"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.auditoria": {
+      "name": "auditoria",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entidad": {
+          "name": "entidad",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entidad_id": {
+          "name": "entidad_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accion": {
+          "name": "accion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "datos": {
+          "name": "datos",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ocurrido_en": {
+          "name": "ocurrido_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ahora()"
+        }
+      },
+      "indexes": {
+        "auditoria_comercio_id_ocurrido_en_idx": {
+          "name": "auditoria_comercio_id_ocurrido_en_idx",
+          "columns": [
+            {
+              "expression": "comercio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "ocurrido_en",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "auditoria_comercio_id_fkey": {
+          "name": "auditoria_comercio_id_fkey",
+          "tableFrom": "auditoria",
+          "tableTo": "comercio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "comercio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auditoria_accion_check": {
+          "name": "auditoria_accion_check",
+          "value": "accion = ANY (ARRAY['crear'::text, 'actualizar'::text, 'anular'::text])"
+        }
+      },
+      "policies": {
+        "aislamiento": {
+          "name": "aislamiento",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "withCheck": "(comercio_id = app_comercio())",
+          "using": "(comercio_id = app_comercio())"
+        }
+      },
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {
+    "public.v_venta_vigente": {
+      "name": "v_venta_vigente",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ficha_id": {
+          "name": "ficha_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "orden_id": {
+          "name": "orden_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cliente_id": {
+          "name": "cliente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metodo": {
+          "name": "metodo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "monto_centimos": {
+          "name": "monto_centimos",
+          "type": "centimos_pos",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fecha_local": {
+          "name": "fecha_local",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hora_local": {
+          "name": "hora_local",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "comprobante_id": {
+          "name": "comprobante_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ocurrida_en": {
+          "name": "ocurrida_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT id, comercio_id, turno_id, usuario_id, ficha_id, orden_id, plan_id, cliente_id, metodo, monto_centimos, fecha_local, hora_local, comprobante_id, ocurrida_en FROM venta v WHERE NOT (EXISTS ( SELECT 1 FROM anulacion a WHERE a.venta_id = v.id))",
+      "materialized": false
+    },
+    "public.v_pool": {
+      "name": "v_pool",
+      "schema": "public",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "codigo": {
+          "name": "codigo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "precio_centimos": {
+          "name": "precio_centimos",
+          "type": "centimos_pos",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "disponibles": {
+          "name": "disponibles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sin_cargar": {
+          "name": "sin_cargar",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "minimo": {
+          "name": "minimo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "WITH disp AS ( SELECT ficha.comercio_id, ficha.plan_id, count(*) AS n FROM ficha WHERE ficha.estado = 'disponible'::text AND ficha.en_router GROUP BY ficha.comercio_id, ficha.plan_id ), pend AS ( SELECT ficha.comercio_id, ficha.plan_id, count(*) AS n FROM ficha WHERE ficha.estado = 'disponible'::text AND NOT ficha.en_router GROUP BY ficha.comercio_id, ficha.plan_id ) SELECT p.comercio_id, p.id AS plan_id, p.codigo, p.nombre, p.categoria, p.precio_centimos, COALESCE(d.n, 0::bigint)::integer AS disponibles, COALESCE(pe.n, 0::bigint)::integer AS sin_cargar, COALESCE(p.stock_minimo, ( SELECT min(pt.pool_minimo) AS min FROM punto pt WHERE pt.comercio_id = p.comercio_id AND pt.activo)) AS minimo FROM plan p LEFT JOIN disp d ON d.plan_id = p.id LEFT JOIN pend pe ON pe.plan_id = p.id WHERE p.activo",
+      "materialized": false
+    },
+    "public.v_stock_lote": {
+      "name": "v_stock_lote",
+      "schema": "public",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lote_id": {
+          "name": "lote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plan": {
+          "name": "plan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cantidad": {
+          "name": "cantidad",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "importacion_id": {
+          "name": "importacion_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archivo": {
+          "name": "archivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anulado_en": {
+          "name": "anulado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "disponibles": {
+          "name": "disponibles",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sin_cargar": {
+          "name": "sin_cargar",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reservadas": {
+          "name": "reservadas",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vendidas": {
+          "name": "vendidas",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anuladas": {
+          "name": "anuladas",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT l.comercio_id, l.id AS lote_id, l.plan_id, p.nombre AS plan, l.cantidad, l.importacion_id, i.archivo, l.creado_en, l.anulado_en, count(*) FILTER (WHERE f.estado = 'disponible'::text AND f.en_router) AS disponibles, count(*) FILTER (WHERE f.estado = 'disponible'::text AND NOT f.en_router) AS sin_cargar, count(*) FILTER (WHERE f.estado = 'reservada'::text) AS reservadas, count(*) FILTER (WHERE f.estado = ANY (ARRAY['vendida'::text, 'activada'::text, 'agotada'::text, 'expirada'::text])) AS vendidas, count(*) FILTER (WHERE f.estado = 'anulada'::text) AS anuladas FROM lote l JOIN plan p ON p.id = l.plan_id LEFT JOIN importacion i ON i.id = l.importacion_id LEFT JOIN ficha f ON f.lote_id = l.id GROUP BY l.comercio_id, l.id, l.plan_id, p.nombre, l.cantidad, l.importacion_id, i.archivo, l.creado_en, l.anulado_en",
+      "materialized": false
+    },
+    "public.v_turno_actual": {
+      "name": "v_turno_actual",
+      "schema": "public",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "turno_id": {
+          "name": "turno_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "punto_id": {
+          "name": "punto_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dia_operativo": {
+          "name": "dia_operativo",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "usuario": {
+          "name": "usuario",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "abierto_en": {
+          "name": "abierto_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fondo_inicial": {
+          "name": "fondo_inicial",
+          "type": "centimos_nonneg",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "efectivo_cobrado": {
+          "name": "efectivo_cobrado",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "efectivo_devuelto": {
+          "name": "efectivo_devuelto",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "movimientos": {
+          "name": "movimientos",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "efectivo_esperado": {
+          "name": "efectivo_esperado",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fichas": {
+          "name": "fichas",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pagos_pos": {
+          "name": "pagos_pos",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT t.comercio_id, t.id AS turno_id, t.punto_id, t.dia_operativo, u.nombre AS usuario, t.abierto_en, t.fondo_inicial, COALESCE(( SELECT sum(v.monto_centimos::integer) AS sum FROM venta v WHERE v.turno_id = t.id AND v.metodo = 'efectivo'::text), 0::bigint) AS efectivo_cobrado, COALESCE(( SELECT sum(v.monto_centimos::integer) AS sum FROM anulacion a JOIN venta v ON v.id = a.venta_id WHERE a.turno_id = t.id AND v.metodo = 'efectivo'::text), 0::bigint) AS efectivo_devuelto, COALESCE(( SELECT sum(m.monto_centimos::integer) AS sum FROM movimiento_caja m WHERE m.turno_id = t.id AND m.tipo <> 'fondo'::text), 0::bigint) AS movimientos, t.fondo_inicial::integer + COALESCE(( SELECT sum(v.monto_centimos::integer) AS sum FROM venta v WHERE v.turno_id = t.id AND v.metodo = 'efectivo'::text), 0::bigint) - COALESCE(( SELECT sum(v.monto_centimos::integer) AS sum FROM anulacion a JOIN venta v ON v.id = a.venta_id WHERE a.turno_id = t.id AND v.metodo = 'efectivo'::text), 0::bigint) + COALESCE(( SELECT sum(m.monto_centimos::integer) AS sum FROM movimiento_caja m WHERE m.turno_id = t.id AND m.tipo <> 'fondo'::text), 0::bigint) AS efectivo_esperado, ( SELECT count(*) AS count FROM v_venta_vigente v WHERE v.turno_id = t.id) AS fichas, ( SELECT count(*) AS count FROM pago pg JOIN orden o ON o.id = pg.orden_id WHERE o.turno_id = t.id AND pg.motivo_manual = 'pos_externo'::text AND pg.estado = 'exitoso'::text) AS pagos_pos FROM turno t JOIN usuario u ON u.id = t.usuario_id WHERE t.cerrado_en IS NULL",
+      "materialized": false
+    },
+    "public.v_pendiente_conciliar": {
+      "name": "v_pendiente_conciliar",
+      "schema": "public",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pago_id": {
+          "name": "pago_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dia_operativo": {
+          "name": "dia_operativo",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "usuario": {
+          "name": "usuario",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "medio": {
+          "name": "medio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "referencia": {
+          "name": "referencia",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "monto_centimos": {
+          "name": "monto_centimos",
+          "type": "centimos_pos",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "desde": {
+          "name": "desde",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "numero": {
+          "name": "numero",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT pg.comercio_id, pg.id AS pago_id, t.dia_operativo, u.nombre AS usuario, pg.medio, pg.referencia, pg.monto_centimos, pg.resuelto_en AS desde, o.numero FROM pago pg JOIN orden o ON o.id = pg.orden_id JOIN turno t ON t.id = o.turno_id JOIN usuario u ON u.id = o.usuario_id WHERE pg.metodo = 'manual'::text AND pg.estado = 'exitoso'::text AND pg.conciliado_en IS NULL",
+      "materialized": false
+    },
+    "public.v_alarma_sin_pago": {
+      "name": "v_alarma_sin_pago",
+      "schema": "public",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "venta_id": {
+          "name": "venta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT comercio_id, id AS venta_id FROM v_venta_vigente v WHERE NOT (EXISTS ( SELECT 1 FROM pago pg WHERE pg.orden_id = v.orden_id AND pg.estado = 'exitoso'::text))",
+      "materialized": false
+    },
+    "public.v_alarma_sin_venta": {
+      "name": "v_alarma_sin_venta",
+      "schema": "public",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pago_id": {
+          "name": "pago_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT pg.comercio_id, pg.id AS pago_id FROM pago pg JOIN orden o ON o.id = pg.orden_id WHERE pg.estado = 'exitoso'::text AND o.estado = 'pagada'::text AND NOT (EXISTS ( SELECT 1 FROM venta v WHERE v.orden_id = pg.orden_id))",
+      "materialized": false
+    },
+    "public.v_alarma_codigo_muerto": {
+      "name": "v_alarma_codigo_muerto",
+      "schema": "public",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ficha_id": {
+          "name": "ficha_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "codigo": {
+          "name": "codigo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT comercio_id, id AS ficha_id, codigo FROM ficha f WHERE (estado = ANY (ARRAY['vendida'::text, 'activada'::text])) AND NOT en_router",
+      "materialized": false
+    },
+    "public.v_alarma_fuga_pool": {
+      "name": "v_alarma_fuga_pool",
+      "schema": "public",
+      "columns": {
+        "comercio_id": {
+          "name": "comercio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ficha_id": {
+          "name": "ficha_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "codigo": {
+          "name": "codigo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uptime_seg": {
+          "name": "uptime_seg",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT f.comercio_id, f.id AS ficha_id, f.codigo, c.uptime_seg FROM ficha f JOIN consumo c ON c.ficha_id = f.id WHERE (f.estado = ANY (ARRAY['disponible'::text, 'reservada'::text, 'anulada'::text])) AND (c.uptime_seg > 0 OR c.bytes_in > 0)",
+      "materialized": false
+    }
+  },
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {}
+  }
+}

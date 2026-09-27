@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: fichas_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fichas_dev
+      POSTGRES_PASSWORD: dev_local_2026
+      POSTGRES_DB: fichas
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./db/migrations:/migrations:ro
+  adminer:
+    image: adminer
+    container_name: fichas_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+volumes:
+  postgres_dev_data:
